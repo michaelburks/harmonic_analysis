@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from midi_io import read_file, DEFAULT_FILE
 
 from analyzer import analyze
