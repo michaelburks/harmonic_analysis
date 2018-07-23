@@ -1,42 +1,53 @@
 import mido
 
-from notes import note_from_midi_val
+from note import Note, Frame
 
-def read_midi(filename):
-  '''
-    returns data with contents of filename.
-    data has shape (-1, channel count).
-  '''
-  file = mido.MidiFile(filename)
-  c = extract_chords(file)
-  return c
+from note_consts import note_from_midi_val
 
-def extract_chords(midifile):
-    notes = []
-    chords = []
+DEFAULT_FILE = '/Users/michael/Desktop/MIDI_Archive/Classical_Piano/format0/pathetique_2_format0.mid'
 
-    for trk in midifile.tracks:
-        current_notes = []
-        note_stack = {}
-        time = 0
-        for msg in trk:
-            if msg.time > 0:
-              chords.append(_notes(current_notes))
-            time += msg.time
-            note_on = msg.type == 'note_on' and msg.velocity > 0
-            note_off = (msg.type == 'note_on' and msg.velocity == 0) or msg.type == 'note_off'
-            if note_on:
-                note_stack[msg.note] = (time, msg.velocity)
-                current_notes.append(msg.note)
-            elif note_off:
-                n = note_stack.pop(msg.note, None)
-                if n:
-                    (t, v) = n
-                    d = time-t
-                    current_notes.remove(msg.note)
-                    notes.append([msg.note])
-    return chords
+def read_file(filepath):
+  """
+    Reads a format0 midi file, creating Note objects for each note and compiling
+    a list of frames (snapshots of active notes) for each midi time increment.
+  """
+  midifile = mido.MidiFile(filepath)
 
-def _notes(midi_list):
-  l = [note_from_midi_val(m) for m in midi_list]
-  return list(set(l))
+  notes = {}  # { note_id : note }
+  frames = [] # [ [note_id] ] Each frame is a list of note ids
+
+  for trk in midifile.tracks:
+    current_note_ids = []
+    current_notes = {}  # { midi_val : note }
+
+    time = 0
+    for msg in trk:
+      if msg.time > 0: # Grab frame
+        if len(frames) == 0 or frames[-1] != current_note_ids:
+          frames.append(Frame(current_note_ids, len(frames)))
+
+      time += msg.time
+      note_on = msg.type == 'note_on' and msg.velocity > 0
+      note_off = (msg.type == 'note_on' and msg.velocity == 0) or msg.type == 'note_off'
+
+      if note_on:
+        n = current_notes.pop(msg.note, None)
+        if n:
+          n.end_t = time
+          current_note_ids.remove(n.id)
+
+        new_note = Note(msg.note, time)
+
+        # Register note
+        notes[new_note.id] = new_note
+        current_notes[msg.note] = new_note
+
+        current_note_ids.append(new_note.id)
+
+      elif note_off:
+        n = current_notes.pop(msg.note, None)
+        if n:
+          n.end_t = time
+          current_note_ids.remove(n.id)
+
+  return notes, frames

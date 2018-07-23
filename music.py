@@ -1,22 +1,43 @@
-from midi_io import read_midi
+from midi_io import read_file, DEFAULT_FILE
 
 from analyzer import analyze
 
-file = '/Users/michael/Desktop/MIDI_Archive/Classical_Piano/format0/pathetique_2_format0.mid'
+from note import Frame
+
+WIDTH = 12
+SAMPLING = 8
 
 def main():
+  note_dict, chord_list = read_file(DEFAULT_FILE)
 
-  file_chords = read_midi(file)[0:5]
+  framesdump = open("out/frames.txt", "w+")
+  for f in chord_list:
+    n_out = [note_dict[nid].name for nid in f.notes]
+    l_out = '{0:03d} {1}\n'.format(f.index, n_out)
+    framesdump.write(l_out)
 
-  sanitized = []
-  for l in file_chords:
-    while len(l) < 3:
-      l.append('_')
-    sanitized.append(l)
+  framesdump.close()
 
-  results = analyze(sanitized)
-  # print sanitized
-  print results
+  scale = None
+  progression = ''
+
+  for step in range(0, len(chord_list) - WIDTH, SAMPLING):
+    analysis_frames = [[[[note_dict[nid].name, note_dict[nid].function]
+                        for nid in f.notes],
+                        f.function]
+                       for f in chord_list[step:step+WIDTH]]
+    print step
+    scale, progression = analyze(analysis_frames, note_dict, chord_list, scale)
+
+    # TODO: support key changes
+    # TODO: combine progression fragments
+
+    print progression
+
+
+  print note_dict
+  print scale
+  print progression
 
 if __name__ == '__main__':
   main()

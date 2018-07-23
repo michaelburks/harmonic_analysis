@@ -105,57 +105,66 @@ scale_triads(SR, SQ, XR, XQ, YR, YQ) :-
   scale_triad(SR, SQ, YR, YQ).
 
 % tonal relationships
-function(S, Q, S, [Q], [tonic, 1]).
+chord_function(S, Q, S, [Q], [tonic, 1]).
 
-function(S, _, N, [major], [dominant, 5]) :-
+chord_function(S, _, N, [major], [dominant, 5]) :-
   interval(S, N, 7).
 
-function(S, _, N, [dominant, 7], [dominant, 5]) :-
+chord_function(S, _, N, [dominant, 7], [dominant, 5]) :-
   interval(S, N, 7).
 
-function(S, major, N, [minor], [predominant, 6]) :-
+chord_function(S, major, N, [minor], [predominant, 6]) :-
   interval(S, N, 9).
 
-function(S, minor, N, [major], [predominant, 6]) :-
+chord_function(S, major, N, [minor], [tonic_sub, 6]) :-
+  interval(S, N, 9).
+
+chord_function(S, minor, N, [major], [predominant, 6]) :-
   interval(S, N, 8).
 
-function(S, Q, N, [Q], [predominant, 4]) :-
+chord_function(S, Q, N, [Q], [predominant, 4]) :-
   interval(S, N, 5).
 
-function(S, minor, N, [diminished], [predominant, 2]) :-
+chord_function(S, minor, N, [diminished], [predominant, 2]) :-
   interval(S, N, 2).
 
-function(S, major, N, [minor], [predominant, 2]) :-
+chord_function(S, major, N, [minor], [predominant, 2]) :-
   interval(S, N, 2).
+
+chord_function(S, Q, N, CQ, [sec_dom, X]) :-
+  \+ tonal_chord_func(S, Q, N, CQ, _),
+  chord_function(S, Q, B, _, [_ , X]),
+  chord_function(B, _, N, CQ, [dominant, _]).
+
+tonal_chord_func(S, Q, N, CQ, [F, I]) :-
+  member(F, [tonic, dominant, predominant, tonic_sub]),
+  chord_function(S, Q, N, CQ, [F, I]).
 
 % progressions
-progression([tonic, 1], [predominant, _]).
-progression([tonic, 1], [dominant, 5]).
+prog_2([tonic, 1], [predominant, _]).
+prog_2([tonic, 1], [dominant, 5]).
 
-progression([predominant, X], [predominant, Y]) :-
+prog_2([predominant, X], [predominant, Y]) :-
   X > Y.
 
-progression([predominant, _], [dominant, 5]).
+prog_2([predominant, _], [dominant, 5]).
 
-progression([dominant, 5], [tonic, 1]).
+prog_2([dominant, 5], [tonic, 1]).
 
-progression(X, X).
+prog_2([tonic_sub, _], X) :- prog_2([tonic, 1], X).
+prog_2(X, [tonic_sub, _]) :- prog_2(X, [tonic, 1]).
 
-% analysis
-% Example:
-% ?- analyze([[g,d,b], [c,e,g], [c,e,a], [c,d,f_sharp,a], [b,d,g]], A).
-analyze([], _, []).
-analyze([Notes|Rest], [S,Q], A) :-
-  permutation(Notes, [CR|CRest]),
-  chord([CR|CRest], CQ),
-  function(S, Q, CR, CQ, CF),
-  analyze_h(S, Q, Rest, [CF], A).
+prog_3(X, [sec_dom, R], [F, R]) :-
+  prog_2(X, [F, R]).
 
-analyze_h(_, _, [], Fs, A) :- reverse(Fs, A).
 
-analyze_h(S, Q, [Notes|Rest], [PrevF|Fs], A) :-
-  permutation(Notes, [CR|CRest]),
-  chord([CR|CRest], CQ),
-  function(S, Q, CR, CQ, CF),
-  progression(PrevF, CF),
-  analyze_h(S, Q, Rest, [CF|[PrevF|Fs]], A).
+progression_list([]).
+progression_list([_]).
+progression_list([X|[Y|Rest]]) :-
+  prog_2(X, Y),
+  progression_list([Y|Rest]).
+
+progression_list([X|[Y|[Z|Rest]]]) :-
+  not(prog_2(X, Y)),
+  prog_3(X, Y, Z),
+  progression_list([Z|Rest]).
