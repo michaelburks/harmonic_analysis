@@ -104,7 +104,7 @@ scale_triads(SR, SQ, XR, XQ, YR, YQ) :-
   scale_triad(SR, SQ, XR, XQ),
   scale_triad(SR, SQ, YR, YQ).
 
-% tonal relationships
+% tonal relationships / functions of chords in a scale
 chord_function(S, Q, S, [Q], [tonic, 1]).
 
 chord_function(S, _, N, [major], [dominant, 5]) :-
@@ -112,6 +112,9 @@ chord_function(S, _, N, [major], [dominant, 5]) :-
 
 chord_function(S, _, N, [dominant, 7], [dominant, 5]) :-
   interval(S, N, 7).
+
+chord_function(S, _, N, [diminished|_], [dominant_sub, 7]) :-
+  interval(S, N, 11).
 
 chord_function(S, major, N, [minor], [predominant, 6]) :-
   interval(S, N, 9).
@@ -140,7 +143,7 @@ tonal_chord_func(S, Q, N, CQ, [F, I]) :-
   member(F, [tonic, dominant, predominant, tonic_sub]),
   chord_function(S, Q, N, CQ, [F, I]).
 
-% progressions
+% progression fragments
 prog_2([tonic, 1], [predominant, _]).
 prog_2([tonic, 1], [dominant, 5]).
 
@@ -154,10 +157,16 @@ prog_2([dominant, 5], [tonic, 1]).
 prog_2([tonic_sub, _], X) :- prog_2([tonic, 1], X).
 prog_2(X, [tonic_sub, _]) :- prog_2(X, [tonic, 1]).
 
+prog_2([dominant, _], [dominant_sub, _]).
+prog_2([dominant_sub, _], [dominant, _]).
+
+prog_2([dominant_sub, _], X) :- prog_2([dominant, 5], X).
+prog_2(X, [dominant_sub, _]) :- prog_2(X, [dominant, 5]).
+
 prog_3(X, [sec_dom, R], [F, R]) :-
   prog_2(X, [F, R]).
 
-
+% progression composition from fragments
 progression_list([]).
 progression_list([_]).
 progression_list([X|[Y|Rest]]) :-

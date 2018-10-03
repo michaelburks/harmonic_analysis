@@ -6,7 +6,7 @@ analysis([[[c, N0], [e, N1]],
 analysis(sample)
 sample is a [frame]
 frame is a [note(note_name, function)]
-function is one of chord(root, quality, function?) or decorator(note, type)
+function is one of chord(root, quality, function?\) or decorator(note, type)
 */
 :- [chords].
 %
@@ -61,42 +61,55 @@ function is one of chord(root, quality, function?) or decorator(note, type)
 % , [[d_sharp, F40], [d_sharp, F46], [a_sharp, F48]]
 % ]).
 
+% merge(A, B, C) -> C = [[a0, b0], [a1, b1], ...]
 merge([], [], []).
 merge([L1|L1R], [L2|L2R], [[L1, L2]|CR]) :-
   merge(L1R, L2R, CR).
 
+% analyze(Frames, Scale, Analysis)
 analysis([], _, _).
 analysis([Frame|Rest], Scale, Analysis) :-
   identify_chords([Frame|Rest], [], Chords),
   chord_progression(Scale, Chords, Functions),
   merge(Chords, Functions, Analysis).
 
+% identify_chords(Frames, [], Chords).
 identify_chords([], Chords, ChordsOut) :- reverse(ChordsOut, Chords).
 
 identify_chords([[Frame, Chord]|Rest], [], ChordsOut) :-
-  frame(Frame, Chord),
+  frame(Frame, Chord, _),
   identify_chords(Rest, [Chord], ChordsOut).
 
 identify_chords([[Frame, ChordIn]|Rest], [ChordIn|ChordsIn], ChordsOut) :-
-  frame(Frame, ChordIn),
+  frame(Frame, ChordIn, _),
   identify_chords(Rest, [ChordIn|ChordsIn], ChordsOut).
 
 identify_chords([[Frame, NewChord]|Rest], [ChordIn|ChordsIn], ChordsOut) :-
-  \+ frame(Frame, ChordIn),
-  frame(Frame, NewChord),
+  \+ frame(Frame, ChordIn, _),
+  frame(Frame, NewChord, _),
   identify_chords(Rest, [NewChord|[ChordIn|ChordsIn]], ChordsOut).
 
-frame([], _).
-frame([[N, [chord|Chord]]|Rest], Chord) :-
-  note_function(N, [chord|Chord]),
-  frame(Rest, Chord).
+frame([], _, []).
+frame([], _, [_]). % Allow up to one NHT.
 
-frame([[N, [chord|PrevChord]]|Rest], Chord) :-
-  note_function(N, [chord|Chord]),
+frame([[N, [F|Chord]]|Rest], Chord, NHT) :-
+  note_function(N, [F|Chord], NHT),
+  frame(Rest, Chord, NHT).
+
+frame([[N, [F|PrevChord]]|Rest], Chord, NHT) :-
+  note_function(N, [F|Chord], NHT),
   \+ Chord = PrevChord,
-  frame(Rest, Chord).
+  frame(Rest, Chord, NHT).
 
-note_function(N, [chord|C]) :- note_chord(N, C).
+note_function(N, [chord|C], []) :-
+  note_chord(N, C).
+
+note_function(N, [chord|C], [NHT]) :-
+  note_chord(N, C),
+  not(N == NHT).
+
+note_function(N, [nht|C], [N]) :-
+  not(note_chord(N, C)).
 
 note_chord(Note, [Root, Quality]) :-
   chord([Root|Rest], Quality),
@@ -104,6 +117,7 @@ note_chord(Note, [Root, Quality]) :-
 
 % TODO: support non-harmonic tones
 
+% sanitize_func_list(Funcs, [], De-duped).
 sanitize_func_list([], List, ListOut) :-
   reverse(List, ListOut).
 
@@ -117,6 +131,7 @@ sanitize_func_list([F|Rest], [G|Others], ListOut) :-
   not(F = G),
   sanitize_func_list(Rest, [F|[G|Others]], ListOut).
 
+% chord_progression([Scale, Quality], Chords, Functions).
 chord_progression([S,Q], Chords, Functions) :-
   chord_prog_get_fs(S, Q, Chords, Functions),
   sanitize_func_list(Functions, [], CleanFuncs),

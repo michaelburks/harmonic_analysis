@@ -25,9 +25,16 @@ class Note:
   def __repr__(self):
     return "Note({0},{1},{2})".format(self.id, self.val, self.function)
 
+  @property
+  def description(self):
+    return str(self.id) + ' ' + self.name + ' ' + str(self.val)
+
 
 class Frame:
   def __init__(self, notes, index):
     self.index = index
     self.notes = list(notes)
     self.function = 'C{0}'.format(index)
+
+  def __repr__(self):
+    return "Frame({0},{1})".format(self.notes, self.function)

@@ -16,7 +16,7 @@ def analyze(frames, note_dict, chord_list, scale_in):
                       [(ChordFunction, ScaleDegree)])]
   """
   prolog = Prolog()
-  prolog.consult("analysis.pl")
+  prolog.consult("harmonic_analysis.pl")
 
   scale_var = _encode(scale_in) if scale_in else "Scale"
   result_var = "Result"
@@ -28,7 +28,9 @@ def analyze(frames, note_dict, chord_list, scale_in):
   q_str = "analysis({0},{1},{2})".format(encoded, scale_var, result_var)
   q = prolog.query(q_str, 1)
 
+  # Resolve query; iterate through solutions.
   for r in q:
+    # Convert prolog variables to strings for python interop.
     for key in r.keys():
       if key[0] == 'N':
         note_id = int(key[1:])

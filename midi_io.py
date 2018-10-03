@@ -23,7 +23,7 @@ def read_file(filepath):
     time = 0
     for msg in trk:
       if msg.time > 0: # Grab frame
-        if len(frames) == 0 or frames[-1] != current_note_ids:
+        if len(frames) == 0 or frames[-1].notes != current_note_ids:
           frames.append(Frame(current_note_ids, len(frames)))
 
       time += msg.time
