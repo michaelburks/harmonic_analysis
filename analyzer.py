@@ -25,7 +25,7 @@ def analyze(frames, note_dict, chord_list, scale_in):
   scale_out = scale_in
   result_out = None
 
-  q_str = "analysis({0},{1},{2})".format(encoded, scale_var, result_var)
+  q_str = "analysis({0},{1},{2},[XHT])".format(encoded, scale_var, result_var)
   q = prolog.query(q_str, 1)
 
   # Resolve query; iterate through solutions.
@@ -41,6 +41,9 @@ def analyze(frames, note_dict, chord_list, scale_in):
         v = r[key]
         if str(v)[0] != "_":
           chord_list[index].function = _stringify(v)
+
+      elif key[0] == 'X':
+        print(key, r[key])
 
       elif key == scale_var:
         scale_out = _stringify(r[key])
