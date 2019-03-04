@@ -9,7 +9,7 @@ A massive prolog query is constructed from combining the queries for each sample
 A single sample query:
 ```
 analysis([[[c, N0], [e, N1]],
-         [[c, N0], [g, N2]]])
+         [[c, N0], [g, N2]]]).
 ```
 
 Or in general:
