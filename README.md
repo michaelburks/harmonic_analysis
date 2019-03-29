@@ -21,7 +21,7 @@ analysis(sample).
 
 `frame` is a `[[note, function_var]]`.
 
-`function_var` will either be a chord with root, quality, and function or an nht with note and type.
+`function_var` will either be a chord with root, quality, and function or an NHT (non-harmonic tone) with note and type.
 
 
 TODO: Handle NHTs more robustly: an ideal solution would minimize their use without inhibiting analysis accuracy or performance.
