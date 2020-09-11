@@ -1,10 +1,10 @@
 import mido
 
-from note import Note, Frame
+from .note import Note, Frame
 
-from note_consts import note_from_midi_val
+from .note_consts import note_from_midi_val
 
-DEFAULT_FILE = '/Users/michael/Desktop/MIDI_Archive/Classical_Piano/format0/pathetique_2_format0.mid'
+DEFAULT_FILE = 'format0/pathetique_2_format0.mid'
 
 def read_file(filepath):
   """

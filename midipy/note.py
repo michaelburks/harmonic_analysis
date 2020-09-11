@@ -1,4 +1,4 @@
-from note_consts import note_from_midi_val
+from .note_consts import note_from_midi_val
 
 class NoteIDProvider:
   next_id = 0

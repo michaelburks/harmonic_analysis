@@ -1,9 +1,8 @@
 #!/usr/bin/python
-from midi_io import read_file, DEFAULT_FILE
+from midipy import read_file, DEFAULT_FILE
+from midipy import Frame
 
 from analyzer import analyze
-
-from note import Frame
 
 import sys, getopt
 

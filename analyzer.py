@@ -16,7 +16,7 @@ def analyze(frames, note_dict, chord_list, scale_in):
                       [(ChordFunction, ScaleDegree)])]
   """
   prolog = Prolog()
-  prolog.consult("harmonic_analysis.pl")
+  prolog.consult("prolog/harmonic_analysis.pl")
 
   scale_var = _encode(scale_in) if scale_in else "Scale"
   result_var = "Result"
